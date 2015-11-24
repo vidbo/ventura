@@ -64,6 +64,14 @@ diveDat$Fry <- as.integer(as.character(diveDat$Fry))
 EFDat$EF_Pass <- as.integer(as.character(EFDat$EF_Pass))
 EFDat$Fry <- as.integer(as.character(EFDat$Fry))
 
+# remove rows that do not have useful data
+idx <- ! (is.na(diveDat$Dive_Pass) | is.na(diveDat$Fry) | is.na(diveDat$Juv))
+diveDat <- diveDat[idx,]
+
+idx <- ! (is.na(EFDat$EF_Pass) | is.na(EFDat$Fry) | is.na(EFDat$Juv))
+EFDat <- EFDat[idx,]
+
+
 save(mapDat, diveDat, EFDat, LWtDat, file="VenturaData.RData")
 
 
