@@ -38,9 +38,10 @@ diveDat <- parseUnit_ID(diveDat)
 EFDat <- parseUnit_ID(EFDat)
 LWtDat <- parseUnit_ID(LWtDat)
 
-# some fields that are characters should be integers
+# some fields that are characters or reals should be integers
 diveDat$Dive_Pass <- as.integer(as.character(diveDat$Dive_Pass))
 diveDat$Fry <- as.integer(as.character(diveDat$Fry))
+diveDat$Juv <- as.integer(diveDat$Juv)
 EFDat$EF_Pass <- as.integer(as.character(EFDat$EF_Pass))
 EFDat$Fry <- as.integer(as.character(EFDat$Fry))
 
@@ -50,6 +51,9 @@ diveDat <- diveDat[idx,]
 
 idx <- ! (is.na(EFDat$EF_Pass) | is.na(EFDat$Fry) | is.na(EFDat$Juv))
 EFDat <- EFDat[idx,]
+
+idx <- ! (is.na(mapDat$Length))
+mapDat <- mapDat[idx,]
 
 # make a factor with common coding for all datasets
 u <- mapDat$site
@@ -100,6 +104,21 @@ EFDat$unit <- units$unit[idx]
 idx <- match(paste0(as.character(LWtDat$siteN), "_", as.character(LWtDat$unith)) , 
              paste0(as.character(units$siteN), "_", as.character(units$unith)))
 LWtDat$unit <- units$unit[idx]
+
+# assign unique id number for each dive-event (unit-year with 1 or more dive counts)
+divent <- unique(diveDat$Unit_ID)
+divent <- data.frame(Unit_ID=divent, divent=1:length(divent))  # new unique id numbers for dive events (consisting of repeat dive counts)
+
+idx <- match(diveDat$Unit_ID, divent$Unit_ID)
+diveDat$divent <- divent$divent[idx]
+
+# assign unique id number for each Efish-event (unit-year with 1 or more efish passes)
+eevent <- unique(EFDat$Unit_ID)
+eevent <- data.frame(Unit_ID=eevent, eevent=1:length(eevent))  # new unique id numbers for dive events (consisting of repeat dive counts)
+
+idx <- match(EFDat$Unit_ID, eevent$Unit_ID)
+EFDat$eevent <- eevent$eevent[idx]
+
 
 # save the final datasets
 save(mapDat, diveDat, EFDat, LWtDat, file="VenturaData.RData")

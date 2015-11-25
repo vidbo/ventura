@@ -15,9 +15,12 @@ options(mc.cores = parallel::detectCores())
 # study 1
 dat1 <- list(
    M = length(mapDat$siteN),
-   D = length(diveDat$siteN),
-   U = as.vector(tapply(mapDat$unit, INDEX=mapDat$siteN, FUN=max, na.rm=TRUE)), ## max unit id in each site
+   D = length(diveDat$divent),
+   Dd= max(diveDat$divent),
+   #U = as.vector(tapply(mapDat$unith, INDEX=mapDat$siteN, FUN=max, na.rm=TRUE)), ## max unit id in each site
+   U = max(mapDat$unit),
    S = max(mapDat$siteN),
+   Y = max(mapDat$yr)-2005,
    m_yr =   mapDat$yr-2005,
    m_unit = mapDat$unit,
    m_site = mapDat$siteN,
@@ -27,10 +30,13 @@ dat1 <- list(
    d_fry  = diveDat$Fry,
    d_juv  = diveDat$Juv,
    d_unit = diveDat$unit,
-   d_site = diveDat$siteN)
+   d_site = diveDat$siteN,
+   d_len  = diveDat$Length,
+   d_event= diveDat$divent,
+   Nmax=500)
 dat1
 
-fit1 <- stan(file="ratiofunc.stan", data=dat1,iter=1000, chains=4)
+fit1 <- stan(file="ventura01.stan", data=dat1,iter=1000, chains=4)
 
 # study 2
 dat2 <- list(
