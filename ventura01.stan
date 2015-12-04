@@ -24,12 +24,25 @@ data {
 
 transformed data {
   real log_unif;
+  # set the maximum possible count for each snorkel survey
+  int<lower=1> d_p_inv;
+  real<lower=0.01, upper=0.99> d_p_min;   # minimum bound of prior for observation prob
+  int<lower=0> d_fry_max[D];
+  int<lower=0> d_juv_max[D];
+
   log_unif <- -log(D);  # uniform prior for D dive counts
+  d_p_inv <- 2;
+  d_p_min <- 1.0/(1.00*d_p_inv);
+  for(d in 1:D) {
+    d_fry_max[d] <- max(20+d_fry[d], d_fry[d] * d_p_inv);
+    d_juv_max[d] <- max(20+d_juv[d], d_juv[d] * d_p_inv);
+  }
+
 }
 
 parameters {
   vector<lower=0.01, upper=0.99>[Dd] d_p;
-  vector<lower=0, upper=1000>[Dd] rho[2]; # density of fry (1) and juv (2), using non-marginalized method
+  vector<lower=0, upper=1000>[Dd] rho[2]; # density of fry (1) and juv (2), using marginalized method
   # second set for comparison of two estimation methods
   simplex[Dd] d_p2[2];
   vector<lower=0, upper=1000>[Dd] rho2[2]; # density of fry (1) and juv (2), using non-marginalized method
@@ -37,14 +50,19 @@ parameters {
 transformed parameters {
 //   simplex[I] thetu[J];
 //   vector[I] ratio[J];
-  vector[D] lp_fry;   # log-probability of fry counts
-  lp_fry <- rep_vector(log_unif, D);
-  for(d in 1:D)
-    for(n in d_fry[d]:Nmax)  # marginalizing over n should involve sums of non-logs, since n's are mutually exclusive, not independent
-      lp_fry[d] <-  lp_fry[d] 
+  real lp_fry;      # log-probability of fry counts
+  lp_fry <- 0;
+
+  for(d in 1:D) {
+    vector[d_fry_max[d]-d_fry[d]+1] lp1;
+    for(n in d_fry[d]:d_fry_max[d]) {  # marginalizing over n should involve sums of non-logs, since n's are mutually exclusive, not independent
+      lp1[n-d_fry[d]+1] 
+             <- -log(d_fry_max[d]-d_fry[d])   # uniform prior
                 + poisson_log(n, rho[1, d_event[d]] * d_len[d]) 
                 + binomial_log(d_fry[d], n, d_p[d_event[d]])  ;
-
+    }
+    lp_fry <- lp_fry + log_sum_exp(lp1);
+  }
 }
 
 model {
@@ -55,7 +73,7 @@ model {
     d_juv[d] ~ poisson(rho2[2, d_event[d]] * d_len[d] * d_p2[1, d_event[d]]);
   }
 
-  increment_log_prob(log_sum_exp(lp_fry)); # these are independent and should be a sum of logs (product of non-logs)
+  increment_log_prob(lp_fry); # these are independent and should be a sum of logs (product of non-logs)
   
 }
 
