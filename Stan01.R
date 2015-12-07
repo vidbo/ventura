@@ -106,18 +106,20 @@ idx <- match(paste0(as.character(LWtDat$siteN), "_", as.character(LWtDat$unith))
 LWtDat$unit <- units$unit[idx]
 
 # assign unique id number for each dive-event (unit-year with 1 or more dive counts)
-divent <- unique(diveDat$Unit_ID)
-divent <- data.frame(Unit_ID=divent, divent=1:length(divent))  # new unique id numbers for dive events (consisting of repeat dive counts)
+ID <- paste0(diveDat$site, "_", diveDat$yr, "_", diveDat$unith)  # can't use diveDat$Unit_ID because of year mistakes
+IDu <- unique(ID)
+d_event <- data.frame(ID=IDu, d_event=1:length(IDu))  # new unique id numbers for dive events (consisting of repeat dive counts)
 
-idx <- match(diveDat$Unit_ID, divent$Unit_ID)
-diveDat$divent <- divent$divent[idx]
+idx <- match(ID, d_event$ID)
+diveDat$d_event <- d_event$d_event[idx]
 
 # assign unique id number for each Efish-event (unit-year with 1 or more efish passes)
-eevent <- unique(EFDat$Unit_ID)
-eevent <- data.frame(Unit_ID=eevent, eevent=1:length(eevent))  # new unique id numbers for dive events (consisting of repeat dive counts)
+ID <- paste0(EFDat$site, "_", EFDat$yr, "_", EFDat$unith)  # can't use diveDat$Unit_ID because of year mistakes
+IDu <- unique(ID)
+e_event <- data.frame(ID=IDu, e_event=1:length(IDu))  # new unique id numbers for dive events (consisting of repeat dive counts)
 
-idx <- match(EFDat$Unit_ID, eevent$Unit_ID)
-EFDat$eevent <- eevent$eevent[idx]
+idx <- match(ID, e_event$ID)
+EFDat$d_event <- e_event$e_event[idx]
 
 
 # save the final datasets

@@ -10,13 +10,15 @@ library(reshape2)
 rstan_options(auto_write = TRUE)
 options(mc.cores = parallel::detectCores())
 
+# temporarily reduce sample size
+diveDat <- diveDat[diveDat$yr < 2008,]
 
 
 # study 1
 dat1 <- list(
    M = length(mapDat$siteN),
-   D = length(diveDat$divent),
-   Dd= max(diveDat$divent),
+   D = length(diveDat$d_event),
+   Dd= max(diveDat$d_event),
    #U = as.vector(tapply(mapDat$unith, INDEX=mapDat$siteN, FUN=max, na.rm=TRUE)), ## max unit id in each site
    U = max(mapDat$unit),
    S = max(mapDat$siteN),
@@ -25,18 +27,32 @@ dat1 <- list(
    m_unit = mapDat$unit,
    m_site = mapDat$siteN,
    m_len  = mapDat$Length,
-   d_yr   = diveDat$yr-2005,
+   d_yr   = tapply(diveDat$yr-2005, diveDat$d_event, FUN=max),
    d_pass = diveDat$Dive_Pass,
    d_fry  = diveDat$Fry,
    d_juv  = diveDat$Juv,
-   d_unit = diveDat$unit,
-   d_site = diveDat$siteN,
-   d_len  = diveDat$Length,
-   d_event= diveDat$divent,
-   Nmax=500)
+   d_unit = tapply(diveDat$unit, diveDat$d_event, FUN=max),
+   d_site = tapply(diveDat$siteN, diveDat$d_event, FUN=max),
+   d_len  = tapply(diveDat$Length, diveDat$d_event, FUN=max),
+   d_event= diveDat$d_event,
+   d_pos  = match(unique(diveDat$d_event), diveDat$d_event),  # starting position in d_fry/d_juv of each d_event
+   d_reps = tapply(diveDat$Dive_Pass, diveDat$d_event, FUN=max) # total number of dive passes for each dive event
+   )
 dat1
 
-fit1 <- stan(file="ventura01.stan", data=dat1,iter=1000, chains=4)
+fit1 <- stan(file="ventura01.stan", data=dat1,iter=1000, chains=2)
+
+library(rv)
+var1 <- as.rv(fit1)
+
+
+
+
+
+
+
+
+
 
 # study 2
 dat2 <- list(
