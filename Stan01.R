@@ -23,6 +23,16 @@ diveDat<- getventura(dives, colIndex=1:9)
 EFDat  <- getventura(EFs,   colIndex=1:9)
 LWtDat <- getventura(LWts, colIndex=1:5)
 
+# convert feet to meters
+mapDat$Length <- mapDat$Length * 0.3048
+diveDat$Length <- diveDat$Length * 0.3048
+diveDat$Width  <- diveDat$Width  * 0.3048
+diveDat$Depth  <- diveDat$Depth  * 0.3048
+EFDat$Length <- EFDat$Length * 0.3048
+EFDat$Width  <- EFDat$Width  * 0.3048
+EFDat$Depth  <- EFDat$Depth  * 0.3048
+
+# process the text unit ids
 parseUnit_ID <- function(dat) {
   obj <- as.character(dat$Unit_ID)
   a <- regexpr("_", obj)
@@ -119,7 +129,7 @@ IDu <- unique(ID)
 e_event <- data.frame(ID=IDu, e_event=1:length(IDu))  # new unique id numbers for dive events (consisting of repeat dive counts)
 
 idx <- match(ID, e_event$ID)
-EFDat$d_event <- e_event$e_event[idx]
+EFDat$e_event <- e_event$e_event[idx]
 
 
 # save the final datasets

@@ -10,8 +10,11 @@ library(reshape2)
 rstan_options(auto_write = TRUE)
 options(mc.cores = parallel::detectCores())
 
+
 # temporarily reduce sample size
-diveDat <- diveDat[diveDat$yr < 2008,]
+# diveDat <- diveDat[diveDat$yr < 2008,]
+# EFDat <- EFDat[EFDat$yr < 2008,]
+# mapDat <- mapDat[mapDat$yr < 2008,]
 
 
 # study 1
@@ -19,6 +22,8 @@ dat1 <- list(
    M = length(mapDat$siteN),
    D = length(diveDat$d_event),
    Dd= max(diveDat$d_event),
+   E = length(EFDat$e_event),
+   Ee= max(EFDat$e_event),
    #U = as.vector(tapply(mapDat$unith, INDEX=mapDat$siteN, FUN=max, na.rm=TRUE)), ## max unit id in each site
    U = max(mapDat$unit),
    S = max(mapDat$siteN),
@@ -36,11 +41,21 @@ dat1 <- list(
    d_len  = tapply(diveDat$Length, diveDat$d_event, FUN=max),
    d_event= diveDat$d_event,
    d_pos  = match(unique(diveDat$d_event), diveDat$d_event),  # starting position in d_fry/d_juv of each d_event
-   d_reps = tapply(diveDat$Dive_Pass, diveDat$d_event, FUN=max) # total number of dive passes for each dive event
-   )
+   d_reps = tapply(diveDat$Dive_Pass, diveDat$d_event, FUN=max), # total number of dive passes for each dive event
+   e_yr   = tapply(EFDat$yr-2005, EFDat$e_event, FUN=max),
+   e_pass = EFDat$EF_Pass,
+   e_fry  = EFDat$Fry,
+   e_juv  = EFDat$Juv,
+   e_unit = tapply(EFDat$unit, EFDat$e_event, FUN=max),
+   e_site = tapply(EFDat$siteN, EFDat$e_event, FUN=max),
+   e_len  = tapply(EFDat$Length, EFDat$e_event, FUN=max),
+   e_event= EFDat$e_event,
+   e_pos  = match(unique(EFDat$e_event), EFDat$e_event),  # starting position in e_fry/e_juv of each e_event
+   e_reps = tapply(EFDat$EF_Pass, EFDat$e_event, FUN=max) # total number of EF passes for each e_event
+)
 dat1
 
-fit1 <- stan(file="ventura01.stan", data=dat1,iter=1000, chains=2)
+fit1 <- stan(file="ventura01.stan", data=dat1,iter=2000, chains=2)
 
 library(rv)
 var1 <- as.rv(fit1)
